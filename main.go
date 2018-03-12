@@ -46,7 +46,9 @@ func main() {
 	log.Debug("Successfully tested Kubernetes connectivity")
 
 	// Setup ConfigMap watcher
-	log.Infof("Starting to watch for new/modified/removed ConfigMaps in namespace %q (empty string means all visible namespaces)", config.Namespace)
+	log.WithFields(logrus.Fields{
+		"namespace": config.Namespace,
+	}).Info("Starting to watch for new/modified/deleted ConfigMaps (empty namespace string means all accessible namespaces)")
 	var configMap corev1.ConfigMap
 	watcher, err := client.Watch(context.Background(), config.Namespace, &configMap)
 	if err != nil {
