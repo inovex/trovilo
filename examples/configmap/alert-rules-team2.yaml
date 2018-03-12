@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alert-rules-team2
+  namespace: default
+  labels:
+    type: alert-rules
+data:
+  alerts-fooo.yml: |
+    groups:
+    - name: example
+      rules:
+      - alert: HighErrorRate
+        expr: job:request_latency_seconds:mean5m{job="myjob"} > 0.5
+        for: 10m
+        labels:
+          severity: page
+        annotations:
+          summary: High request latenc
