@@ -68,6 +68,21 @@ func verifyCM(configMap *corev1.ConfigMap, verifySteps *[]verifyStep) (map[strin
 	return verifiedFiles, "", nil
 }
 
+func compareCMLabels(expected *map[string]string, actual *map[string]string) bool {
+	if len((*actual)) == 0 {
+		// immediately abort if there are no labels at all
+		return false
+	}
+
+	for key, expectedValue := range *expected {
+		actualValue, found := (*actual)[key]
+		if !found || expectedValue != actualValue {
+			return false
+		}
+	}
+	return true
+}
+
 func registerCM(configMap *corev1.ConfigMap, targetDir *string) ([]string, error) {
 	var registeredFiles []string
 
