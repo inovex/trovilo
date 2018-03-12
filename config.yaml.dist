@@ -1,0 +1,13 @@
+#namespace: ""
+jobs:
+  - name: alert-rules
+    labels:
+      type: alert-rules
+    verify:
+      - name: verify alert rule validity
+        cmd:
+          - promtool
+          - check
+          - rules
+          - "%s"
+    target-dir: target-alert-rules/
