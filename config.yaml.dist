@@ -10,4 +10,4 @@ jobs:
           - check
           - rules
           - "%s"
-    target-dir: target-alert-rules/
+    target-dir: tmp/target-alert-rules/
