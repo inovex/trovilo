@@ -49,8 +49,8 @@ func main() {
 	log.WithFields(logrus.Fields{
 		"namespace": config.Namespace,
 	}).Info("Starting to watch for new/modified/deleted ConfigMaps (empty namespace string means all accessible namespaces)")
-	var configMap corev1.ConfigMap
-	watcher, err := client.Watch(context.Background(), config.Namespace, &configMap)
+
+	watcher, err := client.Watch(context.Background(), config.Namespace, new(corev1.ConfigMap))
 	if err != nil {
 		log.WithError(err).Fatal("Failed to load Kubernetes ConfigMap watcher")
 	}
