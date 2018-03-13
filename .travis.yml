@@ -20,7 +20,6 @@ after_success:
   - |
     if [[ -n "${TRAVIS_TAG?}" || "${TRAVIS_BRANCH?}" == master ]]; then
       docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}"
-      docker build -t "${DOCKER_BUILD_IMAGE?}" .
 
       version=""
       if [[ -n "${TRAVIS_TAG?}" ]]; then
@@ -28,7 +27,13 @@ after_success:
       else
         version="${TRAVIS_COMMIT:0:7}-dev"
       fi
-
-      docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
+      
+      # Building standard image
+      docker build -t "${DOCKER_BUILD_IMAGE?}:${version?}" .
       docker push "${DOCKER_BUILD_IMAGE?}:${version?}"
+
+      # Building (extended) tools image
+      GOBIN=$PWD go install github.com/prometheus/prometheus/cmd/promtool
+      docker build -t "${DOCKER_BUILD_IMAGE?}:tools-${version?}" -f Dockerfile.tools .
+      docker push "${DOCKER_BUILD_IMAGE?}:tools-${version?}"
     fi
