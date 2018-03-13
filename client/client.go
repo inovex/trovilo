@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"io/ioutil"
@@ -7,13 +7,13 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-// loadClient parses a kubeconfig from a file and returns a Kubernetes
+// loadKubernetesConfig parses a kubeconfig from a file and returns a Kubernetes
 // client. It does not support extensions or client auth providers.
-func loadKubernetesConfig(kubeConfigFile *string) (*k8s.Client, error) {
+func loadKubernetesConfig(kubeConfigFile string) (*k8s.Client, error) {
 	var data []byte
 	var err error
 
-	if data, err = ioutil.ReadFile(*kubeConfigFile); err != nil {
+	if data, err = ioutil.ReadFile(kubeConfigFile); err != nil {
 		return nil, err
 	}
 
@@ -26,8 +26,9 @@ func loadKubernetesConfig(kubeConfigFile *string) (*k8s.Client, error) {
 	return k8s.NewClient(&config)
 }
 
-func getClient(kubeConfigFile *string) (*k8s.Client, error) {
-	if kubeConfigFile != nil {
+// GetClient returns a k8s client to interact with k8s
+func GetClient(kubeConfigFile string) (*k8s.Client, error) {
+	if kubeConfigFile != "" {
 		return loadKubernetesConfig(kubeConfigFile)
 	}
 

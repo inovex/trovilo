@@ -1,36 +1,39 @@
-package main
+package config
 
 import (
 	"io/ioutil"
 
+	"github.com/sirupsen/logrus"
+
 	yaml "gopkg.in/yaml.v2"
 )
 
-type verifyStep struct {
+type VerifyStep struct {
 	Name string   `yaml:"name"`
 	Cmd  []string `yaml:"cmd"`
 }
-type jobConfig struct {
+type JobConfig struct {
 	Name string `yaml:"name"`
 
-	Labels    map[string]string `yaml:"labels"`
-	Verify    []verifyStep      `yaml:"verify"`
+	Selector  map[string]string `yaml:"selector"`
+	Verify    []VerifyStep      `yaml:"verify"`
 	TargetDir string            `yaml:"target-dir"`
 }
 
-type config struct {
+type Config struct {
 	Namespace string      `yaml:"namespace"`
-	Jobs      []jobConfig `yaml:"jobs"`
+	Jobs      []JobConfig `yaml:"jobs"`
 }
 
-func getConfig(configFile string) (config, error) {
+// GetConfig Translates the YAML main configuration file into Config struct
+func GetConfig(log *logrus.Logger, configFile string) (Config, error) {
 	yamlFile, err := ioutil.ReadFile(configFile)
 
 	if yamlFile == nil {
 		log.WithError(err).Fatalf("Error reading config file")
 	}
 
-	config := config{}
+	config := Config{}
 	err = yaml.Unmarshal(yamlFile, &config)
 
 	return config, err

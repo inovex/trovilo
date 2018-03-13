@@ -1,13 +1,12 @@
 #namespace: ""
 jobs:
   - name: alert-rules
-    labels:
+    selector:
       type: alert-rules
     verify:
       - name: verify alert rule validity
-        cmd:
-          - promtool
-          - check
-          - rules
-          - "%s"
+        cmd: ["promtool", "check", "rules", "%s"]
     target-dir: tmp/target-alert-rules/
+    post-action:
+      - name: reload prometehus
+        cmd: fooo

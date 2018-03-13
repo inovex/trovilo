@@ -1,4 +1,4 @@
-package main
+package util
 
 import (
 	"os"
@@ -6,20 +6,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func setupLogging() {
-	if *logJSON {
+func SetupLogging(log *logrus.Logger, logJSON bool, logLevel string) {
+	if logJSON {
 		log.Formatter = new(logrus.JSONFormatter)
 	}
 
 	log.Out = os.Stdout
 
-	if *logLevel == "debug" {
+	switch logLevel {
+	case "debug":
 		log.Level = logrus.DebugLevel
-	} else if *logLevel == "info" {
+	case "info":
 		log.Level = logrus.InfoLevel
-	} else if *logLevel == "warn" {
+	case "warn":
 		log.Level = logrus.WarnLevel
-	} else {
+	default:
 		log.Level = logrus.ErrorLevel
 	}
 }
