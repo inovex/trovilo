@@ -35,6 +35,7 @@ after_success:
       # Building (extended) tools image
       go get github.com/prometheus/prometheus/cmd/promtool
       GOBIN=$PWD go install github.com/prometheus/prometheus/cmd/promtool
+      ls -lA
 
       docker build -t "${DOCKER_BUILD_IMAGE?}:tools-${version?}" -f Dockerfile.tools .
       docker push "${DOCKER_BUILD_IMAGE?}:tools-${version?}"
