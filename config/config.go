@@ -8,9 +8,11 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
+type VerifyStepCmd []string
+
 type VerifyStep struct {
-	Name string   `yaml:"name"`
-	Cmd  []string `yaml:"cmd"`
+	Name string        `yaml:"name"`
+	Cmd  VerifyStepCmd `yaml:"cmd"`
 }
 type JobConfig struct {
 	Name string `yaml:"name"`

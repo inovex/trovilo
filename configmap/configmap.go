@@ -39,7 +39,7 @@ func genereateTargetPath(targetDir string, namespace string, configMap string, c
 	return filepath.Join(targetDir, namespace, configMap, configMapDataFile)
 }
 
-func runCmdAgainstCMFile(file string, cmd []string) (string, error) {
+func runCmdAgainstCMFile(file string, cmd config.VerifyStepCmd) (string, error) {
 	var args []string
 
 	for cmdPos := range cmd {
@@ -61,8 +61,8 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 	verifiedFiles := map[string]string{}
 
 	for file, fileContents := range configMap.Data {
-		for step := range verifySteps {
-			if len(verifySteps[step].Cmd) != 0 {
+		for _, step := range verifySteps {
+			if len(step.Cmd) != 0 {
 
 				// Prepare (temporary) file to verify
 				tempFile, err := ioutil.TempFile("", fmt.Sprintf("trovilo-%s-", file))
@@ -77,7 +77,7 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 				// In the end just remove the temporary file, regardless of the verification result
 				defer deleteFile(tempFile.Name())
 
-				output, err := runCmdAgainstCMFile(tempFile.Name(), verifySteps[step].Cmd)
+				output, err := runCmdAgainstCMFile(tempFile.Name(), step.Cmd)
 
 				if err != nil {
 					// Immediately abort if there's just one piece of the configmap that is invalid
