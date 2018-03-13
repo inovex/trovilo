@@ -8,6 +8,8 @@ services:
 
 before_install:
   - set -e
+  #TODO this is very insane, find a long term way to have dep available (in a safe way):
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh 
 
 script:
   - make
