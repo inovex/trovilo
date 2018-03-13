@@ -1,3 +1,5 @@
 target-alert-rules/
-bin/
+build/
 tmp/
+trovilo
+vendor/

@@ -1,0 +1,32 @@
+language: go
+
+go:
+  - 1.10.x
+
+services:
+  - docker
+
+before_install:
+  - set -e
+
+script:
+  - make
+  - tar xfvz build/trovilo-*.linux-amd64.tar.gz
+  - ls -lA build/
+
+after_success:
+  - |
+    if [[ -n "${TRAVIS_TAG?}" || "${TRAVIS_BRANCH?}" == master ]]; then
+      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}"
+      docker build -t "${DOCKER_BUILD_IMAGE?}" .
+
+      version=""
+      if [[ -n "${TRAVIS_TAG?}" ]]; then
+        version="${TRAVIS_TAG?}"
+      else
+        version="${TRAVIS_COMMIT:0:7}-dev"
+      fi
+
+      docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
+      docker push "${DOCKER_BUILD_IMAGE?}:${version?}"
+    fi

@@ -12,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var build string
+
 func main() {
 	// Prepare cmd line parser
 	var configFile = kingpin.Flag("config", "YAML configuration file.").Required().ExistingFile()
@@ -21,6 +23,8 @@ func main() {
 
 	kingpin.CommandLine.Help = "Trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends"
 	kingpin.CommandLine.HelpFlag.Short('h')
+	kingpin.Version(build)
+	kingpin.CommandLine.VersionFlag.Short('v')
 	kingpin.Parse()
 
 	// Prepare logging
