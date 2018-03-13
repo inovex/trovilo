@@ -10,30 +10,8 @@ import (
 
 	corev1 "github.com/ericchiang/k8s/apis/core/v1"
 	"github.com/inovex/trovilo/config"
+	"github.com/inovex/trovilo/util"
 )
-
-func writeFile(file string, contents []byte) error {
-	err := os.MkdirAll(filepath.Dir(file), 0755)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(file, contents, 0644)
-}
-
-func writeOSFile(file *os.File, contents []byte) error {
-	err := os.MkdirAll(filepath.Dir(file.Name()), 0755)
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(contents)
-	return err
-}
-
-func deleteFile(file string) error {
-	return os.Remove(file)
-}
 
 func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string) string {
 	return filepath.Join(targetDir, namespace, configMap, configMapDataFile)
@@ -69,13 +47,13 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 				if err != nil {
 					return verifiedFiles, "", err
 				}
-				err = writeOSFile(tempFile, []byte(fileContents))
+				err = util.WriteOSFile(tempFile, []byte(fileContents))
 				if err != nil {
 					return verifiedFiles, "", err
 				}
 
 				// In the end just remove the temporary file, regardless of the verification result
-				defer deleteFile(tempFile.Name())
+				defer util.DeleteFile(tempFile.Name())
 
 				output, err := runCmdAgainstCMFile(tempFile.Name(), step.Cmd)
 
@@ -117,7 +95,7 @@ func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error)
 		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
 		registeredFiles = append(registeredFiles, targetFile)
 
-		err := writeFile(targetFile, []byte(fileContents))
+		err := util.WriteFile(targetFile, []byte(fileContents))
 		if err != nil {
 			return registeredFiles, err
 		}
@@ -147,11 +125,19 @@ func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string) ([]str
 		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
 		removedFiles = append(removedFiles, *configMap.Metadata.Namespace, *configMap.Metadata.Name, targetFile)
 
-		err := deleteFile(targetFile)
+		err := util.DeleteFile(targetFile)
 		if err != nil {
 			return removedFiles, err
 		}
 	}
 
 	return removedFiles, nil
+}
+
+// RunPostDeployActionCmd should be invoked after successfully deploying a CM and simply runs an user-defined command
+func RunPostDeployActionCmd(cmd config.PostDeployActionCmd) (string, error) {
+	c := exec.Command(cmd[0], cmd[1:]...)
+	output, err := c.CombinedOutput()
+
+	return strings.TrimSpace(string(output)), err
 }

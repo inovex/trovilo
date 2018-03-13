@@ -140,6 +140,22 @@ func main() {
 			} else {
 				logEntry.Info("Successfully registered ConfigMap")
 			}
+
+			// ConfigMap has ben registered, now run (optional) user-defined post deployment actions
+			if len(job.PostDeploy) > 0 {
+				for _, postDeployAction := range job.PostDeploy {
+					output, err := configmap.RunPostDeployActionCmd(postDeployAction.Cmd)
+					logEntry = logEntryBase.WithFields(logrus.Fields{
+						"postDeployAction": postDeployAction,
+						"output":           output,
+					})
+					if err != nil {
+						logEntry.WithError(err).Error("Failed to executed postDeployAction command")
+					} else {
+						logEntry.Info("Successfully executed postDeployAction command")
+					}
+				}
+			}
 		}
 	}
 }

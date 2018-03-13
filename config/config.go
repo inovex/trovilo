@@ -14,12 +14,21 @@ type VerifyStep struct {
 	Name string        `yaml:"name"`
 	Cmd  VerifyStepCmd `yaml:"cmd"`
 }
+
+type PostDeployActionCmd []string
+
+type PostDeployAction struct {
+	Name string              `yaml:"name"`
+	Cmd  PostDeployActionCmd `yaml:"cmd"`
+}
+
 type JobConfig struct {
 	Name string `yaml:"name"`
 
-	Selector  map[string]string `yaml:"selector"`
-	Verify    []VerifyStep      `yaml:"verify"`
-	TargetDir string            `yaml:"target-dir"`
+	Selector   map[string]string  `yaml:"selector"`
+	Verify     []VerifyStep       `yaml:"verify"`
+	TargetDir  string             `yaml:"target-dir"`
+	PostDeploy []PostDeployAction `yaml:"post-deploy"`
 }
 
 type Config struct {
