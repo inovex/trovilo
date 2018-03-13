@@ -81,7 +81,8 @@ func main() {
 				"eventType":      eventType,
 			})
 			// Check whether ConfigMap matches to our expected labels
-			if !configmap.CompareCMLabels(job.Selector, cm.Metadata.Labels) {
+			match := configmap.CompareCMLabels(job.Selector, cm.Metadata.Labels)
+			if !match || eventType == "DELETED" {
 				// It doesn't match. Make sure it doesn't exist in the filesystem (anymore)
 				if configmap.IsCMAlreadyRegistered(cm, job.TargetDir) {
 					logEntryBase.Info("ConfigMap has been deleted from namepace, thus removing in target directory too")
