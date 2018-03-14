@@ -1,0 +1,34 @@
+language: go
+
+go:
+  - 1.10.x
+
+services:
+  - docker
+
+before_install:
+  - set -e
+  #TODO this is very insane, find a long term way to have dep available (in a safe way):
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+
+script:
+  - make
+  - tar xfvz build/trovilo-*.linux-amd64.tar.gz
+  - ls -lA
+
+after_success:
+  - |
+    if [[ -n "${TRAVIS_TAG?}" || "${TRAVIS_BRANCH?}" == master ]]; then
+      docker login -u "${DOCKER_USERNAME?}" -p "${DOCKER_PASSWORD?}"
+      docker build -t "${DOCKER_BUILD_IMAGE?}" .
+
+      version=""
+      if [[ -n "${TRAVIS_TAG?}" ]]; then
+        version="${TRAVIS_TAG?}"
+      else
+        version="${TRAVIS_COMMIT:0:7}-dev"
+      fi
+
+      docker tag "${DOCKER_BUILD_IMAGE?}" "${DOCKER_BUILD_IMAGE?}:${version?}"
+      docker push "${DOCKER_BUILD_IMAGE?}:${version?}"
+    fi

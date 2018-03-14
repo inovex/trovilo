@@ -12,15 +12,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var build string
+
 func main() {
 	// Prepare cmd line parser
 	var configFile = kingpin.Flag("config", "YAML configuration file.").Required().ExistingFile()
-	var kubeConfigFile = kingpin.Flag("kubeconfig", "Optional kubectl configuration file. If undefined we expect trovilo to be running in a pod.").ExistingFile()
+	var kubeConfigFile = kingpin.Flag("kubeconfig", "Optional kubectl configuration file. If undefined we expect trovilo is running in a pod.").ExistingFile()
 	var logLevel = kingpin.Flag("log-level", "Specify log level (debug, info, warn, error).").Default("info").String()
 	var logJSON = kingpin.Flag("log-json", "Enable JSON-formatted logging on STDOUT.").Bool()
 
 	kingpin.CommandLine.Help = "Trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends"
 	kingpin.CommandLine.HelpFlag.Short('h')
+	kingpin.Version(build)
+	kingpin.CommandLine.VersionFlag.Short('v')
 	kingpin.Parse()
 
 	// Prepare logging
