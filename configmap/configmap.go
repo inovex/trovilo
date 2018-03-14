@@ -13,7 +13,10 @@ import (
 	"github.com/inovex/trovilo/filesystem"
 )
 
-func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string) string {
+func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string, flatten bool) string {
+	if flatten {
+		return filepath.Join(targetDir, fmt.Sprintf("%s_%s_%s", namespace, configMap, configMapDataFile))
+	}
 	return filepath.Join(targetDir, namespace, configMap, configMapDataFile)
 }
 
@@ -88,11 +91,11 @@ func CompareCMLabels(expected map[string]string, actual map[string]string) bool 
 }
 
 // RegisterCM writes a ConfigMap to filesystem
-func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error) {
+func RegisterCM(configMap *corev1.ConfigMap, targetDir string, flatten bool) ([]string, error) {
 	var registeredFiles []string
 
 	for file, fileContents := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 		registeredFiles = append(registeredFiles, targetFile)
 
 		err := filesystem.WriteFile(targetFile, []byte(fileContents))
@@ -105,9 +108,9 @@ func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error)
 }
 
 // IsCMAlreadyRegistered is a helper function that checks whether we already know this ConfigMap
-func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string) bool {
+func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string, flatten bool) bool {
 	for file := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 
 		_, err := os.Stat(targetFile)
 		if err == nil {
@@ -118,11 +121,11 @@ func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string) bool {
 }
 
 // RemoveCMfromTargetDir removes a ConfigMap's files from filesystem
-func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string) ([]string, error) {
+func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string, flatten bool) ([]string, error) {
 	var removedFiles []string
 
 	for file := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 		removedFiles = append(removedFiles, *configMap.Metadata.Namespace, *configMap.Metadata.Name, targetFile)
 
 		err := filesystem.DeleteFile(targetFile)

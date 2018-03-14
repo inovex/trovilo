@@ -28,6 +28,7 @@ type JobConfig struct {
 	Selector   map[string]string  `yaml:"selector"`
 	Verify     []VerifyStep       `yaml:"verify"`
 	TargetDir  string             `yaml:"target-dir"`
+	Flatten    bool               `yaml:"flatten"`
 	PostDeploy []PostDeployAction `yaml:"post-deploy"`
 }
 

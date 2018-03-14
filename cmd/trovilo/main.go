@@ -84,9 +84,9 @@ func main() {
 			match := configmap.CompareCMLabels(job.Selector, cm.Metadata.Labels)
 			if !match || eventType == "DELETED" {
 				// It doesn't match. Make sure it doesn't exist in the filesystem (anymore)
-				if configmap.IsCMAlreadyRegistered(cm, job.TargetDir) {
+				if configmap.IsCMAlreadyRegistered(cm, job.TargetDir, job.Flatten) {
 					logEntryBase.Info("ConfigMap has been deleted from namepace, thus removing in target directory too")
-					removedFiles, err := configmap.RemoveCMfromTargetDir(cm, job.TargetDir)
+					removedFiles, err := configmap.RemoveCMfromTargetDir(cm, job.TargetDir, job.Flatten)
 
 					logEntry := logEntryBase.WithField("removedFiles", removedFiles)
 					if err != nil {
@@ -146,7 +146,7 @@ func main() {
 			}
 
 			// ConfigMap has been verified, write files to filesystem
-			registeredFiles, err := configmap.RegisterCM(cm, job.TargetDir)
+			registeredFiles, err := configmap.RegisterCM(cm, job.TargetDir, job.Flatten)
 			logEntry := logEntryBase.WithFields(logrus.Fields{
 				"eventType":       eventType,
 				"registeredFiles": registeredFiles,
