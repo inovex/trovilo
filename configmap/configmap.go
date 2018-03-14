@@ -10,7 +10,7 @@ import (
 
 	corev1 "github.com/ericchiang/k8s/apis/core/v1"
 	"github.com/inovex/trovilo/config"
-	"github.com/inovex/trovilo/util"
+	"github.com/inovex/trovilo/filesystem"
 )
 
 func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string) string {
@@ -47,13 +47,13 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 				if err != nil {
 					return verifiedFiles, "", err
 				}
-				err = util.WriteOSFile(tempFile, []byte(fileContents))
+				err = filesystem.WriteOSFile(tempFile, []byte(fileContents))
 				if err != nil {
 					return verifiedFiles, "", err
 				}
 
 				// In the end just remove the temporary file, regardless of the verification result
-				defer util.DeleteFile(tempFile.Name())
+				defer filesystem.DeleteFile(tempFile.Name())
 
 				output, err := runCmdAgainstCMFile(tempFile.Name(), step.Cmd)
 
@@ -95,7 +95,7 @@ func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error)
 		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
 		registeredFiles = append(registeredFiles, targetFile)
 
-		err := util.WriteFile(targetFile, []byte(fileContents))
+		err := filesystem.WriteFile(targetFile, []byte(fileContents))
 		if err != nil {
 			return registeredFiles, err
 		}
@@ -125,7 +125,7 @@ func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string) ([]str
 		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
 		removedFiles = append(removedFiles, *configMap.Metadata.Namespace, *configMap.Metadata.Name, targetFile)
 
-		err := util.DeleteFile(targetFile)
+		err := filesystem.DeleteFile(targetFile)
 		if err != nil {
 			return removedFiles, err
 		}
