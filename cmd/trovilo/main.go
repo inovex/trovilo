@@ -8,7 +8,7 @@ import (
 	"github.com/inovex/trovilo/client"
 	"github.com/inovex/trovilo/config"
 	"github.com/inovex/trovilo/configmap"
-	"github.com/inovex/trovilo/util"
+	"github.com/inovex/trovilo/logging"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	// Prepare logging
 	log := logrus.New()
-	util.SetupLogging(log, *logJSON, *logLevel)
+	logging.SetupLogging(log, *logJSON, *logLevel)
 
 	// Prepare app configuration
 	config, err := config.GetConfig(log, *configFile)
