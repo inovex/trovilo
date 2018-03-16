@@ -7,6 +7,13 @@ jobs:
       - name: verify alert rule validity
         cmd: ["promtool", "check", "rules", "%s"]
     target-dir: tmp/target-alert-rules/
-    post-action:
-      - name: reload prometehus
-        cmd: fooo
+    flatten: true
+    post-deploy:
+      - name: echo text
+        cmd: ["echo", "Hello", "World"]
+      #- name: reload prometheus
+      #  cmd: ["curl", "-s", "-X", "POST", "http://localhost:9090/-/reload"]
+  - name: grafana-dashboards
+    selector:
+      type: grafana-dashboards
+    target-dir: tmp/target-grafana-dashboards/

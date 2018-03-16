@@ -14,6 +14,21 @@ import (
 
 var build string
 
+func processPostDeployActions(logEntryBase *logrus.Entry, postDeployActions []config.PostDeployAction) {
+	for _, postDeployAction := range postDeployActions {
+		output, err := configmap.RunPostDeployActionCmd(postDeployAction.Cmd)
+		logEntry := *logEntryBase.WithFields(logrus.Fields{
+			"postDeployAction": postDeployAction,
+			"output":           output,
+		})
+		if err != nil {
+			logEntry.WithError(err).Error("Failed to executed postDeployAction command")
+		} else {
+			logEntry.Info("Successfully executed postDeployAction command")
+		}
+	}
+}
+
 func main() {
 	// Prepare cmd line parser
 	var configFile = kingpin.Flag("config", "YAML configuration file.").Required().ExistingFile()
@@ -81,11 +96,12 @@ func main() {
 				"eventType":      eventType,
 			})
 			// Check whether ConfigMap matches to our expected labels
-			if !configmap.CompareCMLabels(job.Selector, cm.Metadata.Labels) {
+			match := configmap.CompareCMLabels(job.Selector, cm.Metadata.Labels)
+			if !match || eventType == "DELETED" {
 				// It doesn't match. Make sure it doesn't exist in the filesystem (anymore)
-				if configmap.IsCMAlreadyRegistered(cm, job.TargetDir) {
+				if configmap.IsCMAlreadyRegistered(cm, job.TargetDir, job.Flatten) {
 					logEntryBase.Info("ConfigMap has been deleted from namepace, thus removing in target directory too")
-					removedFiles, err := configmap.RemoveCMfromTargetDir(cm, job.TargetDir)
+					removedFiles, err := configmap.RemoveCMfromTargetDir(cm, job.TargetDir, job.Flatten)
 
 					logEntry := logEntryBase.WithField("removedFiles", removedFiles)
 					if err != nil {
@@ -94,6 +110,10 @@ func main() {
 						logEntry.Info("Successfully deleted ConfigMap from namepace")
 					}
 
+					// Deleting the configmap also triggers post-deploy actions
+					if len(job.PostDeploy) > 0 {
+						processPostDeployActions(logEntryBase, job.PostDeploy)
+					}
 					continue
 				}
 
@@ -130,7 +150,7 @@ func main() {
 			}
 
 			// ConfigMap has been verified, write files to filesystem
-			registeredFiles, err := configmap.RegisterCM(cm, job.TargetDir)
+			registeredFiles, err := configmap.RegisterCM(cm, job.TargetDir, job.Flatten)
 			logEntry := logEntryBase.WithFields(logrus.Fields{
 				"eventType":       eventType,
 				"registeredFiles": registeredFiles,
@@ -139,6 +159,11 @@ func main() {
 				logEntry.WithError(err).Fatal("Failed to register ConfigMap")
 			} else {
 				logEntry.Info("Successfully registered ConfigMap")
+			}
+
+			// ConfigMap has ben registered, now run (optional) user-defined post deployment actions
+			if len(job.PostDeploy) > 0 {
+				processPostDeployActions(logEntryBase, job.PostDeploy)
 			}
 		}
 	}

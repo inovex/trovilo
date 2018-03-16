@@ -10,32 +10,13 @@ import (
 
 	corev1 "github.com/ericchiang/k8s/apis/core/v1"
 	"github.com/inovex/trovilo/config"
+	"github.com/inovex/trovilo/filesystem"
 )
 
-func writeFile(file string, contents []byte) error {
-	err := os.MkdirAll(filepath.Dir(file), 0755)
-	if err != nil {
-		return err
+func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string, flatten bool) string {
+	if flatten {
+		return filepath.Join(targetDir, fmt.Sprintf("%s_%s_%s", namespace, configMap, configMapDataFile))
 	}
-
-	return ioutil.WriteFile(file, contents, 0644)
-}
-
-func writeOSFile(file *os.File, contents []byte) error {
-	err := os.MkdirAll(filepath.Dir(file.Name()), 0755)
-	if err != nil {
-		return err
-	}
-
-	_, err = file.Write(contents)
-	return err
-}
-
-func deleteFile(file string) error {
-	return os.Remove(file)
-}
-
-func genereateTargetPath(targetDir string, namespace string, configMap string, configMapDataFile string) string {
 	return filepath.Join(targetDir, namespace, configMap, configMapDataFile)
 }
 
@@ -66,16 +47,17 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 
 				// Prepare (temporary) file to verify
 				tempFile, err := ioutil.TempFile("", fmt.Sprintf("trovilo-%s-", file))
-				if err != nil {
-					return verifiedFiles, "", err
-				}
-				err = writeOSFile(tempFile, []byte(fileContents))
-				if err != nil {
-					return verifiedFiles, "", err
-				}
 
 				// In the end just remove the temporary file, regardless of the verification result
-				defer deleteFile(tempFile.Name())
+				defer filesystem.DeleteFile(tempFile.Name())
+
+				if err != nil {
+					return verifiedFiles, "", err
+				}
+				err = filesystem.WriteOSFile(tempFile, []byte(fileContents))
+				if err != nil {
+					return verifiedFiles, "", err
+				}
 
 				output, err := runCmdAgainstCMFile(tempFile.Name(), step.Cmd)
 
@@ -110,14 +92,14 @@ func CompareCMLabels(expected map[string]string, actual map[string]string) bool 
 }
 
 // RegisterCM writes a ConfigMap to filesystem
-func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error) {
+func RegisterCM(configMap *corev1.ConfigMap, targetDir string, flatten bool) ([]string, error) {
 	var registeredFiles []string
 
 	for file, fileContents := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 		registeredFiles = append(registeredFiles, targetFile)
 
-		err := writeFile(targetFile, []byte(fileContents))
+		err := filesystem.WriteFile(targetFile, []byte(fileContents))
 		if err != nil {
 			return registeredFiles, err
 		}
@@ -127,9 +109,9 @@ func RegisterCM(configMap *corev1.ConfigMap, targetDir string) ([]string, error)
 }
 
 // IsCMAlreadyRegistered is a helper function that checks whether we already know this ConfigMap
-func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string) bool {
+func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string, flatten bool) bool {
 	for file := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 
 		_, err := os.Stat(targetFile)
 		if err == nil {
@@ -140,18 +122,26 @@ func IsCMAlreadyRegistered(configMap *corev1.ConfigMap, targetDir string) bool {
 }
 
 // RemoveCMfromTargetDir removes a ConfigMap's files from filesystem
-func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string) ([]string, error) {
+func RemoveCMfromTargetDir(configMap *corev1.ConfigMap, targetDir string, flatten bool) ([]string, error) {
 	var removedFiles []string
 
 	for file := range configMap.Data {
-		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file)
+		targetFile := genereateTargetPath(targetDir, *configMap.Metadata.Namespace, *configMap.Metadata.Name, file, flatten)
 		removedFiles = append(removedFiles, *configMap.Metadata.Namespace, *configMap.Metadata.Name, targetFile)
 
-		err := deleteFile(targetFile)
+		err := filesystem.DeleteFile(targetFile)
 		if err != nil {
 			return removedFiles, err
 		}
 	}
 
 	return removedFiles, nil
+}
+
+// RunPostDeployActionCmd should be invoked after successfully deploying a CM and simply runs an user-defined command
+func RunPostDeployActionCmd(cmd config.PostDeployActionCmd) (string, error) {
+	c := exec.Command(cmd[0], cmd[1:]...)
+	output, err := c.CombinedOutput()
+
+	return strings.TrimSpace(string(output)), err
 }
