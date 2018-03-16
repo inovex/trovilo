@@ -14,6 +14,21 @@ import (
 
 var build string
 
+func processPostDeployActions(logEntryBase *logrus.Entry, postDeployActions []config.PostDeployAction) {
+	for _, postDeployAction := range postDeployActions {
+		output, err := configmap.RunPostDeployActionCmd(postDeployAction.Cmd)
+		logEntry := *logEntryBase.WithFields(logrus.Fields{
+			"postDeployAction": postDeployAction,
+			"output":           output,
+		})
+		if err != nil {
+			logEntry.WithError(err).Error("Failed to executed postDeployAction command")
+		} else {
+			logEntry.Info("Successfully executed postDeployAction command")
+		}
+	}
+}
+
 func main() {
 	// Prepare cmd line parser
 	var configFile = kingpin.Flag("config", "YAML configuration file.").Required().ExistingFile()
@@ -97,18 +112,7 @@ func main() {
 
 					// Deleting the configmap also triggers post-deploy actions
 					if len(job.PostDeploy) > 0 {
-						for _, postDeployAction := range job.PostDeploy {
-							output, err := configmap.RunPostDeployActionCmd(postDeployAction.Cmd)
-							logEntry = logEntryBase.WithFields(logrus.Fields{
-								"postDeployAction": postDeployAction,
-								"output":           output,
-							})
-							if err != nil {
-								logEntry.WithError(err).Error("Failed to executed postDeployAction command")
-							} else {
-								logEntry.Info("Successfully executed postDeployAction command")
-							}
-						}
+						processPostDeployActions(logEntryBase, job.PostDeploy)
 					}
 					continue
 				}
@@ -159,18 +163,7 @@ func main() {
 
 			// ConfigMap has ben registered, now run (optional) user-defined post deployment actions
 			if len(job.PostDeploy) > 0 {
-				for _, postDeployAction := range job.PostDeploy {
-					output, err := configmap.RunPostDeployActionCmd(postDeployAction.Cmd)
-					logEntry = logEntryBase.WithFields(logrus.Fields{
-						"postDeployAction": postDeployAction,
-						"output":           output,
-					})
-					if err != nil {
-						logEntry.WithError(err).Error("Failed to executed postDeployAction command")
-					} else {
-						logEntry.Info("Successfully executed postDeployAction command")
-					}
-				}
+				processPostDeployActions(logEntryBase, job.PostDeploy)
 			}
 		}
 	}
