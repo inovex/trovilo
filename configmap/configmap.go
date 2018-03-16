@@ -47,6 +47,10 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 
 				// Prepare (temporary) file to verify
 				tempFile, err := ioutil.TempFile("", fmt.Sprintf("trovilo-%s-", file))
+
+				// In the end just remove the temporary file, regardless of the verification result
+				defer filesystem.DeleteFile(tempFile.Name())
+
 				if err != nil {
 					return verifiedFiles, "", err
 				}
@@ -54,9 +58,6 @@ func VerifyCM(configMap *corev1.ConfigMap, verifySteps []config.VerifyStep) (map
 				if err != nil {
 					return verifiedFiles, "", err
 				}
-
-				// In the end just remove the temporary file, regardless of the verification result
-				defer filesystem.DeleteFile(tempFile.Name())
 
 				output, err := runCmdAgainstCMFile(tempFile.Name(), step.Cmd)
 
