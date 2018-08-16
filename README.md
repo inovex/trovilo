@@ -35,6 +35,7 @@ Deploy the binary to your target systems or use the [official Docker image](http
 Simple trovilo example configuration file:
 
 ```
+$ cat trovilo-config.yaml
 jobs:
   # Arbitrary name for identification (and troubleshooting in logs)
   - name: alert-rules
