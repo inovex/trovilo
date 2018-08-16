@@ -121,7 +121,8 @@ spec:
           - '--config.file=/etc/prometheus/prometheus.yml'
           - '--web.enable-lifecycle'
           - '--storage.tsdb.retention=90d'
-          - '--storage.tsdb.path=/prometheus/data/'
+          # Optional AWS EBS volume
+          #- '--storage.tsdb.path=/prometheus/data/'
         ports:
           - containerPort: 9090
         volumeMounts:
