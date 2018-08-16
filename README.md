@@ -36,14 +36,19 @@ Simple trovilo example configuration file:
 
 ```
 jobs:
+  # Arbitrary name for identification (and troubleshooting in logs)
   - name: alert-rules
+    # Kubernetes-styled label selector (notice all available namespaces will be checked)
     selector:
       type: prometheus-alerts
     verify:
+      # Example verification step to check whether the contents of the ConfigMap are valid Prometheus alert files. %s will be replaced by the ConfigMap's file path(s).
       - name: verify alert rule validity
         cmd: ["promtool", "check", "rules", "%s"]
     target-dir: /etc/prometheus-alerts/
+    # Enable directory flattening so all ConfigMap files will be placed in a single directory
     flatten: true
+    # After successfully verifying the ConfigMap and deploying it into the target-dir, run the following commands to trigger (e.g. Prometheus) manual config reloads
     post-deploy:
       - name: reload prometheus
         cmd: ["curl", "-s", "-X", "POST", "http://localhost:9090/-/reload"]
