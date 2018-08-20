@@ -1,0 +1,85 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      name: prometheus
+      labels:
+        app: prometheus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      # Allow non-root user to access PersistentVolume
+      #securityContext:
+      #  runAsUser: 65534
+      #  fsGroup: 65534
+      # Optional SA for prometheus itself
+      #serviceAccountName: prometheus
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: trovilo-config
+          configMap:
+            name: trovilo-config
+        # Optional AWS EBS volume
+        #- name: data
+        #  persistentVolumeClaim:
+        #    claimName: prometheus-ebs
+        - name: prometheus-alerts
+          emptyDir:
+            medium: Memory
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.3.1
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--web.enable-lifecycle'
+          - '--storage.tsdb.retention=90d'
+          # Optional AWS EBS volume
+          #- '--storage.tsdb.path=/prometheus/data/'
+        ports:
+          - containerPort: 9090
+        volumeMounts:
+          - name: prometheus-config
+            mountPath: /etc/prometheus
+            readOnly: true
+          # Optional AWS EBS volume
+          #- name: data
+          #  mountPath: /prometheus/data/
+          - name: prometheus-alerts
+            mountPath: /etc/prometheus-alerts
+        resources:
+          limits:
+            cpu: 1
+            memory: 10Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+      - name: trovilo
+        image: inovex/trovilo:tools-2045130-dev
+        args:
+          - '--config=/etc/trovilo/trovilo-config.yaml'
+          - '--log-json'
+          #- '--log-level=debug'
+        volumeMounts:
+          - name: trovilo-config
+            mountPath: /etc/trovilo
+            readOnly: true
+          - name: prometheus-alerts
+            mountPath: /etc/prometheus-alerts
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200mi
+          requests:
+            cpu: 100m
+            memory: 200mi

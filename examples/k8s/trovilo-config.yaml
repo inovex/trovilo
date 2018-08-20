@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trovilo-config
+  namespace: default
+data:
+  trovilo-config.yaml: |
+    jobs:
+      - name: alert-rules
+        selector:
+          type: prometheus-alerts
+        verify:
+          - name: verify alert rule validity
+            cmd: ["promtool", "check", "rules", "%s"]
+        target-dir: /etc/prometheus-alerts/
+        flatten: true
+        post-deploy:
+          - name: reload prometheus
+            cmd: ["curl", "-s", "-X", "POST", "http://localhost:9090/-/reload"]
