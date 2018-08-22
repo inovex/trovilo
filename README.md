@@ -39,7 +39,7 @@ $ cat trovilo-config.yaml
 jobs:
   # Arbitrary name for identification (and troubleshooting in logs)
   - name: alert-rules
-    # Kubernetes-styled label selector (notice all available namespaces will be checked)
+    # Kubernetes-styled label selector to define how to find ConfigMaps (notice all available namespaces will be checked)
     selector:
       type: prometheus-alerts
     verify:
