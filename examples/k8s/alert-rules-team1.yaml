@@ -4,7 +4,7 @@ metadata:
   name: alert-rules-team1
   namespace: default
   labels:
-    type: alert-rules
+    type: prometheus-alerts
 data:
   alerts1.yml: |
     groups:
