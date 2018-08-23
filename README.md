@@ -36,10 +36,12 @@ Simple trovilo example configuration file:
 
 ```
 $ cat trovilo-config.yaml
+# Which namespace to check (empty string means all namespaces)
+#namespace: ""
 jobs:
   # Arbitrary name for identification (and troubleshooting in logs)
   - name: alert-rules
-    # Kubernetes-styled label selector to define how to find ConfigMaps (notice all available namespaces will be checked)
+    # Kubernetes-styled label selector to define how to find ConfigMaps
     selector:
       type: prometheus-alerts
     verify:
@@ -53,6 +55,11 @@ jobs:
     post-deploy:
       - name: reload prometheus
         cmd: ["curl", "-s", "-X", "POST", "http://localhost:9090/-/reload"]
+  # Another job example, but for Grafana dashboards (JSON model)
+  - name: grafana-dashboards
+    selector:
+      type: grafana-dashboards
+    target-dir: tmp/target-grafana-dashboards/
 ```
 
 Full example Kubernetes deployment with Prometheus:
