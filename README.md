@@ -2,6 +2,12 @@
 
 Trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends.
 
+## Philosophy
+
+This simple helper tool aims to collect ConfigMaps (files) via the Kubernetes API and writes them down into the filesystem, that may be internally processed by apps like Prometheus or Grafana. It focuses to serve this purpose only on a very generic way. This means it's not meant to work with a specific app only and won't contain such specific code. Instead we try to provide an extensive UI and try keep the code maintainable.
+
+Contributions are highly appreciated. :)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
