@@ -1,6 +1,6 @@
 # trovilo
 
-Trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends.
+trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends.
 
 ## Philosophy
 
