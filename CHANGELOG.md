@@ -11,10 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Initial Release. Following releases will contain a more detailed changelog.
 
 ### Changed
-- TBD
+- Nothing.
 
 ### Removed
-- TBD
+- Nothing.
 
 
 [Unreleased]: https://github.com/inovex/trovilo/compare/v0.1.0...HEAD
