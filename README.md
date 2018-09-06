@@ -81,6 +81,13 @@ $ kubectl apply \
   -f https://raw.githubusercontent.com/inovex/trovilo/master/examples/k8s/trovilo-config.yaml \
   -f https://raw.githubusercontent.com/inovex/trovilo/master/examples/k8s/deployment.yaml
 ```
+## Alternatives
+
+Some projects with very similar use case(s):
+
+* [PierreVincent/k8s-grafana-watcher](https://github.com/PierreVincent/k8s-grafana-watcher)
+* [nordstrom/prometheusRuleLoader](https://github.com/nordstrom/prometheusRuleLoader)
+* [stakater/Reloader](https://github.com/stakater/Reloader)
 
 ## License
 
