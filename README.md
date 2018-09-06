@@ -1,5 +1,9 @@
 # trovilo
 
+[![Build Status](https://travis-ci.org/inovex/trovilo.png?branch=master)](https://travis-ci.org/inovex/trovilo)
+[![Go Report Card](https://goreportcard.com/badge/github.com/inovex/trovilo)](https://goreportcard.com/report/github.com/inovex/trovilo)
+[![Docker Pulls](https://img.shields.io/docker/pulls/inovex/trovilo.svg?maxAge=604800)](https://hub.docker.com/r/inovex/trovilo/)
+
 trovilo collects and prepares files from Kubernetes ConfigMaps for Prometheus & friends.
 
 ## Philosophy
