@@ -60,8 +60,8 @@ func main() {
 	}
 	log.Debug("Successfully loaded Kubernetes client")
 
-	log.Debug("Testing Kubernetes connectivity by fetching list of nodes..")
-	if err := client.List(context.Background(), "", new(corev1.NodeList)); err != nil {
+	log.Debug("Testing Kubernetes connectivity by fetching list of configmaps..")
+	if err := client.List(context.Background(), config.Namespace, new(corev1.ConfigMapList)); err != nil {
 		log.WithError(err).Fatal("Failed to test Kubernetes connectivity")
 	}
 	log.Debug("Successfully tested Kubernetes connectivity")
